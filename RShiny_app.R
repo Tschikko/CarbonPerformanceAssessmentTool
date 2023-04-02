@@ -12,6 +12,8 @@ ui <- fluidPage(
   titlePanel("Carbon Perfomance"),
   
   tabsetPanel( 
+    h1("Update existing company"),
+
     tabPanel("Company Selection", 
     selectInput("companySelection", "Pick a company to perform a Carbon Performance assessment for:", 
                 choices = c("Please select company name",AAAfile$Company_Name)),
@@ -19,9 +21,8 @@ ui <- fluidPage(
                 choices = c("Please select date",AAAfile$Research_Date )),
     submitButton("See company details"),
     
-    #plotOutput(),
-    #tableOutput(),
     
+    h1("Add new company"),
     textOutput("newCompanyIntro"),
     
     textInput("newCompanyName", "Please enter the name of the company you would like to add"),
@@ -31,18 +32,25 @@ ui <- fluidPage(
     ),
     
     
+    tabPanel("Company Pathway",
     
-    tabPanel("2019", h1("Coming soon")),
+    plotOutput('CP_Pathway'),
+    tableOutput('CP_Table')
+    
+    ),
+    
+    tabPanel("Historical Data", h1("Coming soon")),
     
     
     
-    tabPanel("2020",
+    tabPanel("Historical Calculation",
              ###Company Details
              
              #tabsetpanels?
              
              
              ###>>>Emissions Data Input
+             h1("Absolute data"),
              textOutput("emissionsDataCollection"),
              numericInput("emissions2020","Emissions 2020", 0, 10000000000000000),
              selectInput("emissionsAccountingBoundary2020", "Select accounting boundary on which emissions are stated",
@@ -67,7 +75,15 @@ ui <- fluidPage(
              
              fileInput("additionalIntensityCalculations", "Please upload any files including additional permutations or modifications made to disclosed values. Please follow the format you can find here."),
              
+             h1("Own intensity calculation"),
+             submitButton("Submit", icon("refresh")),
              
+             
+             textOutput("emissionsIntensity"),
+             
+             
+             
+             h1("Intensity data"),
              ###>>>Company intensity Data Input 
              textOutput("intensityDataCollection"),
              numericInput("intensity2020","Intensity 2020", 0, 10000000000000000),
@@ -80,19 +96,25 @@ ui <- fluidPage(
              
              #output telling you difference between calculated and reported intensity
              
-             
-             
-             
-             submitButton("Submit", icon("refresh")),
-             
-             
-             textOutput("emissionsIntensity"),
-             
              radioButtons("disclosureVSownestimate", "Is the disclosed intensity substantiated by own estimated intensity?", c("Yes"="yes", "No"="no"),selected ="no"),
              
              
              plotOutput("carbonPerformance")
-    )
+    ),
+    
+    tabPanel("Target Data"),
+    
+    h1("Absolute data"),
+    
+    h1("Intensity data"),
+    
+    tabPanel("Target Calculation"),
+    
+    h1("Intensity target"),
+    
+    h1("Absolute target"),
+    
+             
   )
 )
 
