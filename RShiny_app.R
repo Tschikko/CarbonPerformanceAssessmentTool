@@ -8,9 +8,7 @@ library("pool")
 library("rhandsontable")
 
 
-AAAfile <- read.csv("Sample_Data.csv")
-colnames(AAAfile) <- c("Company_Name","Sector","company_id_formatted","HQ_Location","CA100+","Research_Date","Year","GHG_Value","GHG_Unit","Activity_Value","Activity_Unit","GHG_Intensity")
-row.names(AAAfile) <- AAAfile$`Company Name`
+
 ########################
 ###Data Database
 pool <- dbPool(
@@ -64,12 +62,13 @@ server <- function(input, output, session){
   }
   
   observe({
-    update_company_names()
+    update_company_names() 
   })
   
   observeEvent(input$addNewCompany, {
     update_company_names()
   })
+  
   
   
   
@@ -83,10 +82,48 @@ server <- function(input, output, session){
           condition = "input.user_auth",
           titlePanel("Carbon Perfomance"),
           
+          # Add your logo here
+          div(
+            tags$img(src = "OpenCo Logo.jpg", height = "50px", width = "75px"),
+            style = "position: absolute; top: 10px; right: 10px;"
+          ),
+
+          
+          tabsetPanel( 
+          ##########################################################################
+          ###Tab 0###
+          tabPanel("Welcome", 
+                   h1("Welcome to the Carbon Performance Assessment Platform!"),
+                   h3("Our platform is designed to help users evaluate the carbon performance of companies across a variety of sectors. Through the integration of comprehensive carbon emissions data and sector-specific parameters, we provide a detailed, yet user-friendly approach to carbon performance analysis."),
+                   
+                   h3("Key Features:"),
+                   HTML("
+         <ul>
+           <li><b>Company Selection:</b> Choose from a vast array of companies and review their carbon performance over different assessment periods.</li>
+           <li><b>Historical Data:</b> Dive into the historical carbon emissions data for the selected company and explore detailed breakdowns of absolute and intensity data.</li>
+           <li><b>Company Pathway:</b> Visualize the carbon performance pathway for any chosen company, including graphical representations and performance tables.</li>
+           <li><b>Target Data:</b> Understand the future ambitions of companies through their carbon reduction targets.</li>
+           <li><b>Target Calculation:</b> Analyze the intensity and absolute carbon reduction targets to better understand companies' future ambitions.</li>
+         </ul>"),
+                   
+                   h3("How to Use this Platform"),
+                   HTML("
+         <ol>
+           <li>Login with your credentials to gain access to the platform.</li>
+           <li>Select a company from the dropdown menu under the 'Company Selection' tab.</li>
+           <li>Review the historical data of the company and observe the company's pathway.</li>
+           <li>Dive into the target data and calculations to better understand the company's carbon reduction commitments.</li>
+           <li>Add new company data or update existing data to help us improve the platform.</li>
+         </ol>"),
+                   
+                   h3("Remember, understanding a company's carbon performance is crucial to making informed decisions about how to better tackle climate change. Thank you for joining us in this important endeavor!")
+          ),
+          
+          
           
           ##########################################################################
           ###Tab 1###
-          tabsetPanel( 
+
             tabPanel("Company Selection", 
                      h1("Update existing company"),
                      selectInput("companySelection", "Pick a company to perform a Carbon Performance assessment for:",
@@ -237,20 +274,6 @@ server <- function(input, output, session){
                      actionButton("submitIntensityData", "Submit"),
             ),
             
-            tabPanel("Historical Calculation",
-                     ###Company Details
-                     
-                     #tabsetpanels?
-                     
-                     
-                     
-                     h1("Own intensity calculation"),
-                     submitButton("Submit", icon("refresh")),
-                     textOutput("emissionsIntensity"),
-                     #output telling you difference between calculated and reported intensity
-                     
-                     radioButtons("disclosureVSownestimate", "Is the disclosed intensity substantiated by own estimated intensity?", c("Yes"="yes", "No"="no"),selected ="no")
-            ),
             
             
             ##########################################################################
