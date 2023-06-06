@@ -5,6 +5,7 @@ library("tibble")
 library("RMySQL")
 library("DBI")
 library("pool")
+library("rhandsontable")
 
 
 AAAfile <- read.csv("Sample_Data.csv")
@@ -21,7 +22,8 @@ pool <- dbPool(
   port = 3306
 )
 
-CountryList<-c("Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic (CAR)", "Chad", "Chile", "China", "Colombia", "Comoros", "Democratic Republic of the Congo", "Republic of the Congo", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (formerly Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (formerly Burma)", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia (formerly Macedonia)", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan")
+CountryList<-c("Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic (CAR)", "Chad", "Chile", "China", "Colombia", "Comoros", "Democratic Republic of the Congo", "Republic of the Congo", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (formerly Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (formerly Burma)", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia (formerly Macedonia)", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", 
+               "South Korea", "South Sudan","United Kingdom", "United States")
 
 
 ########################
@@ -110,6 +112,14 @@ server <- function(input, output, session){
             ##########################################################################
             ###Tab 2###
             tabPanel("Company Pathway",
+                     
+                     
+                     actionButton("plotButton", "Plot intensity pathway"),
+                     
+                     
+                     plotOutput("intensityPathwayPlot"),
+                     
+                     
                      
                      selectInput("companyAssessmentDate", "Please select the assessment date for which you would like to see data. Please note, once you submit new data, a new assessment date will appear below",
                                  choices = c("Please select date", AAAfile$Research_Date)),
@@ -268,15 +278,52 @@ server <- function(input, output, session){
             
             ##########################################################################
             ###Tab 5### 
-            tabPanel("Target Calculation",
+            tabPanel("Calculation",
+                     h1("Historical Intensities"),
+                     
+                     br(),
+                     
                      actionButton("display", "Display Table"),
-                     dataTableOutput('calcTable'),
+                     rHandsontableOutput('calcTable'),
+                     
+
+                     
+                     actionButton("calcButton", "Calculate Emissions Intensity"),  # This is the new button
+                     
+                     
+                     DT::dataTableOutput('selectedTable'),
+                     
+                     # Create a dropdown menu in the UI
+                     selectInput("statusDropDown", "Status", 
+                                 choices = c("1st draft assessment", 
+                                             "internally reviewed assessment", 
+                                             "company reviewed assessment", 
+                                             "final assessment")),
+                     
+                     # Create a "Save to Database" button
+                     actionButton("saveButton", "Save to Database"),
                      
                      
                      
-                     h1("Intensity target"),
+                     h1("Targeted Intensities"),
                      
-                     h1("Absolute target"),
+                     actionButton("display_target_Button", "Display Table"),
+                     rHandsontableOutput('targetsTable'),
+                     
+                     
+                     actionButton("calc_target_Button", "Calculate Target Intensity"),  # This is the new button
+                     
+     
+                     DT::dataTableOutput('selected_target_Table'),
+                     
+                     selectInput("status_target_dropdown", "Assessment status:", 
+                                 c("1st draft assessment", 
+                                   "internally reviewed assessment", 
+                                   "company reviewed assessment", 
+                                   "final assessment")),
+                     
+                     actionButton("save_target_to_db", "Save to Database"),
+                     
             )
           )
         )
@@ -703,19 +750,36 @@ server <- function(input, output, session){
     }
   })
   
+  
+  
+  
+  
+  data <- reactiveValues(df = NULL)
+  
   observeEvent(input$display, {
     if (!is.null(selected_company_id_2())) {
+      query <- sprintf("SELECT e.company_id, c.company_name, e.timestamp_data_entry, e.ghg_scope, e.ghg_activity_boundary, e.year, e.ghg_value,
+                        'Absolute Emissions' AS data_type, NULL AS output_measure, NULL AS output_activity_boundary, NULL AS output_value, NULL AS output_unit, NULL AS output_source_doc, NULL AS output_source_page, NULL AS output_source_date, NULL AS output_comment
+                        FROM emissions_data e
+                        INNER JOIN companies c ON e.company_id = c.id
+                        WHERE e.year BETWEEN 2013 AND YEAR(CURDATE()) AND e.company_id = %d
+                        UNION
+                        SELECT o.company_id, c.company_name, o.timestamp_data_entry, NULL AS ghg_scope, NULL AS ghg_activity_boundary, o.year, NULL AS ghg_value,
+                        'Output' AS data_type, o.output_measure, o.output_activity_boundary, o.output_value, o.output_unit, o.output_source_doc, o.output_source_page, o.output_source_date, o.output_comment
+                        FROM output_data o
+                        INNER JOIN companies c ON o.company_id = c.id
+                        WHERE o.year BETWEEN 2013 AND YEAR(CURDATE()) AND o.company_id = %d
+                        ORDER BY company_name, year", selected_company_id_2(), selected_company_id_2())
       
-      query <- sprintf("SELECT c.company_name, e.timestamp_data_entry, e.ghg_scope, e.ghg_activity_boundary, e.year, e.ghg_value
-                      FROM emissions_data e
-                      INNER JOIN companies c ON e.company_id = c.id
-                      WHERE e.year BETWEEN 2013 AND YEAR(CURDATE()) AND c.id = %d
-                      ORDER BY c.company_name, e.year", selected_company_id_2())
-      data <- dbGetQuery(pool, query)
+      data$df  <- dbGetQuery(pool, query)
       
-      if (nrow(data) > 0) {
-        output$calcTable <- renderDataTable({
-          datatable(data, options = list(pageLength = 25))
+      if (nrow(data$df) > 0) {
+        # Add radio button column
+        data$df$Selected <- FALSE
+        
+        output$calcTable <- renderRHandsontable({
+          rhandsontable(data$df, rowHeaders = FALSE, width = "100%", height = 400) %>%
+            hot_col("Selected", type = "checkbox", readOnly = FALSE)
         })
       } else {
         showNotification("No data found for the selected company in the specified year range", type = "error")
@@ -724,9 +788,351 @@ server <- function(input, output, session){
       showNotification("Error: No company selected or selected company not found in the database", type = "error")
     }
   })
-}
-
+ 
+  
+  # Initialize reactiveValues object
+  results_df <- reactiveValues(df = NULL)
+  
+  observeEvent(input$calcButton, {
+    # Get the data from the rHandsontable
+    calcTableData <- hot_to_r(input$calcTable)
+    
+    # Convert the data to a dataframe
+    df <- as.data.frame(calcTableData)
+    
+    # Extract the rows where Selected is TRUE
+    selected_rows <- df[df$Selected == TRUE, ]
+    
+    # Get a list of unique years from the selected rows
+    unique_years <- unique(selected_rows$year)
+    
+    # Initialize an empty data frame for the results
+    results_df$df <- data.frame()
+    
+    for (year in unique_years) {
+      # For each year, get the selected "output" and "absolute emissions" rows
+      yearly_rows <- selected_rows[selected_rows$year == year, ]
+      output_row <- yearly_rows[yearly_rows$data_type == "Output", ]
+      emission_row <- yearly_rows[yearly_rows$data_type == "Absolute Emissions", ]
+      
+      # If exactly one of each row is selected, calculate the intensity and add a row to the results dataframe
+      if(nrow(output_row) == 1 && nrow(emission_row) == 1) {
+        intensity <- as.numeric(emission_row$ghg_value) / as.numeric(output_row$output_value)
+        results_df$df <- rbind(results_df$df, data.frame(
+          company_id = as.numeric(emission_row$company_id),
+          company_name = as.character(emission_row$company_name),
+          year = as.numeric(year),
+          absolute_emissions = as.numeric(emission_row$ghg_value),
+          output = as.numeric(output_row$output_value),
+          intensity = intensity
+        ))
+      }
+    }
+    
+    # Render the results as a DataTable
+    output$selectedTable <- DT::renderDataTable({
+      DT::datatable(results_df$df)
+    })
+  })
+  
+  observeEvent(input$saveButton, {
+    
+    # Drop rows with any NULL values
+    results_df$df <- results_df$df[complete.cases(results_df$df), ]
+    
+    
+    if (nrow(results_df$df) == 0) {
+      showNotification("No data to save. Please select data first.", type = "error")
+      return()
+    }
+    
+    if (is.null(input$statusDropDown) || input$statusDropDown == "") {
+      showNotification("No status selected. Please select a status first.", type = "error")
+      return()
+    }
+    
+    
+    
+    # Assign status value based on the selected value in the dropdown
+    results_df$df$status <- input$statusDropDown
+    
+    if(anyNA(results_df$df)) {
+      print("There are NA values in the dataframe")
+    }
+    
+    # Check the database connection
+    if (!dbIsValid(pool)) {
+      print("The database connection is not valid.")
+      return()
+    }
+    
+    # Try a simpler query
+    tryCatch({
+      simple_query <- "SELECT * FROM company_pathway_hist LIMIT 5"
+      simple_results <- dbGetQuery(pool, simple_query)
+      print(simple_results)
+    }, error = function(e) {
+      print("Error running simple query:")
+      print(e)
+    })
+    
+    # Loop over the rows of the dataframe
+    for(i in 1:nrow(results_df$df)) {
+      row <- results_df$df[i, ]
+      
+      # Skip this row if any of the columns contain NULL values
+      if(any(is.null(row))) {
+        print(paste("Skipping row", i, "due to NULL values"))
+        print(row)
+        next
+      }
+      
+      # Prepare the INSERT statement
+      query <- sprintf("INSERT INTO company_pathway_hist (company_id, company_name, year, absolute_emissions, output, intensity, status) VALUES (%d, '%s', %d, %f, %f, %f, '%s')",
+                       row$company_id,
+                       row$company_name,
+                       row$year,
+                       row$absolute_emissions,
+                       row$output,
+                       row$intensity,
+                       row$status
+      )
+      
+      # Print the query
+      print(query)
+      
+      # Execute the INSERT statement and store the result
+      result <- tryCatch({
+        dbExecute(pool, query)
+      }, error = function(e) {
+        # If there's an error, print it and show a notification
+        print(paste("Error running INSERT query:", e$message))
+        showNotification("Error while saving to the database. Please check your inputs.", type = "error")
+      })
+      
+      # If the result is not an error, show a success notification
+      if (!inherits(result, "error")) {
+        showNotification("Data saved successfully to the database.", type = "message")
+      }
+    }
+  })
+  
+  # Create a reactive value to hold the database table data
+  ghg_targets <- reactiveValues(df = NULL)
+  
+  # Fetch the data when a button is clicked or some other event occurs
+  observeEvent(input$display_target_Button, {
+    if (!is.null(selected_company_id())) {
+      query <- sprintf("SELECT * FROM ghg_reduction_targets WHERE company_id = %d", selected_company_id())
+      
+      ghg_targets$df <- dbGetQuery(pool, query)
+      
+      if (nrow(ghg_targets$df) > 0) {
+        # Add checkbox column
+        ghg_targets$df$Selected <- FALSE
+        
+        output$targetsTable <- renderRHandsontable({
+          rhandsontable(ghg_targets$df, rowHeaders = FALSE, width = "100%", height = 400) %>%
+            hot_col("Selected", type = "checkbox", readOnly = FALSE)
+        })
+      } else {
+        showNotification("No data found for the selected company", type = "error")
+      }
+    } else {
+      showNotification("Error: No company selected or selected company not found in the database", type = "error")
+    }
+  })
+  
+  
+  
+  # Initialize reactiveValues object for target data
+  target_results_df <- reactiveValues(df = NULL)
+  
+  observeEvent(input$calc_target_Button, {
+    # Get the data from the rHandsontable
+    calcTableData <- hot_to_r(input$targetsTable)
+    
+    # Convert the data to a dataframe
+    df <- as.data.frame(calcTableData)
+    
+    # Extract the rows where Selected is TRUE
+    selected_rows <- df[df$Selected == TRUE, ]
+    
+    for (i in 1:nrow(selected_rows)) {
+      # Get the base year intensity from the company_pathway_hist table
+      base_year <- selected_rows$base_year[i]
+      base_intensity_query <- sprintf("SELECT intensity FROM company_pathway_hist WHERE company_id = %d AND year = %d", selected_rows$company_id[i], base_year)
+      base_intensity <- as.numeric(dbGetQuery(pool, base_intensity_query)$intensity)
+      
+      print(paste("Base intensity:", base_intensity))
+      
+      # Calculate the targeted intensity
+      targeted_intensity <- base_intensity * (1 + selected_rows$targeted_reduction_percent[i])
+      
+      print(paste("Targeted intensity:", targeted_intensity))
+      
+      # Add a row to the results dataframe
+      target_results_df$df <- rbind(target_results_df$df, data.frame(
+        company_id = selected_rows$company_id[i],
+        company_name = selected_rows$target_name[i],
+        base_year = base_year,
+        target_year = selected_rows$target_year[i],
+        targeted_reduction_percent = selected_rows$targeted_reduction_percent[i],
+        targeted_intensity = targeted_intensity
+      ))
+    }
+    
+    # Render the results as a DataTable
+    output$selected_target_Table <- DT::renderDataTable({
+      DT::datatable(target_results_df$df)
+    })
+  })
+  
+  # In your server function
+  observeEvent(input$save_target_to_db, {
+    status_target <- input$status_target_dropdown
+    
+    if (nrow(target_results_df$df) == 0) {
+      showNotification("No data to save. Please select data first.", type = "error")
+      return()
+    }
+    
+    if (is.null(status_target) || status_target == "") {
+      showNotification("No status selected. Please select a status first.", type = "error")
+      return()
+    }
+    
+    # Assign status value based on the selected value in the dropdown
+    target_results_df$df$status_target <- status_target
+    
+    if(anyNA(target_results_df$df)) {
+      print("There are NA values in the dataframe")
+    }
+    
+    # Check the database connection
+    if (!dbIsValid(pool)) {
+      print("The database connection is not valid.")
+      return()
+    }
+    
+    # Loop over the rows of the dataframe
+    for(i in 1:nrow(target_results_df$df)) {
+      row <- target_results_df$df[i, ]
+      
+      # Skip this row if any of the columns contain NULL values
+      if(any(is.null(row))) {
+        print(paste("Skipping row", i, "due to NULL values"))
+        print(row)
+        next
+      }
+      
+      # Prepare the INSERT statement
+      query <- sprintf("INSERT INTO company_pathway_target (company_id, company_name, base_year, target_year, targeted_reduction_percent, targeted_intensity, status_target) VALUES (%d, '%s', %d, %d, %f, %f, '%s')",
+                       row$company_id,
+                       row$company_name,
+                       row$base_year,
+                       row$target_year,
+                       row$targeted_reduction_percent,
+                       row$targeted_intensity,
+                       row$status_target
+      )
+      
+      # Print the query
+      print(query)
+      
+      # Execute the INSERT statement and store the result
+      result <- tryCatch({
+        dbExecute(pool, query)
+      }, error = function(e) {
+        # If there's an error, print it and show a notification
+        print(paste("Error running INSERT query:", e$message))
+        showNotification("Error while saving to the database. Please check your inputs.", type = "error")
+      })
+      
+      # If the result is not an error, show a success notification
+      if (!inherits(result, "error")) {
+        showNotification("Data saved successfully to the database.", type = "message")
+      }
+    }
+  })
+  
   
 
+  
+  # Define a reactive expression for selected_company_id
+  selected_company_id_3 <- reactive({
+    req(input$companySelection)
+    selected_name <- input$companySelection
+    if (selected_name == "Please select company") {
+      return(NULL)
+    }
+    
+    # Use tryCatch when calling get_company_id
+    company_id <- tryCatch({
+      get_company_id(pool, selected_name)
+    }, error = function(e) {
+      print(paste("Error in get_company_id:", e$message))
+      return(NULL)
+    })
+    
+    if (!is.null(company_id)) {
+      company_id[[1]]
+    } else {
+      return(NULL)
+    }
+  })
+  
+  
+  output$intensityPathwayPlot <- renderPlot({
+    # Check if the plotButton has been clicked. If not, exit this function.
+    input$plotButton
+    
+    # Check if a company is selected
+    if (is.null(selected_company_id_3()) || length(selected_company_id_3()) == 0 || selected_company_id_3() == "Please select company") {
+      showNotification("Error: No company selected or selected company not found in the database", type = "error")
+      return()
+    }
+    
+    # Fetch the historical data from company_pathway_hist
+    historical_query <- sprintf("SELECT year, intensity FROM company_pathway_hist WHERE company_id = %d", selected_company_id_3())
+    historical_data <- dbGetQuery(pool, historical_query)
+    
+    # Fetch the target data from company_pathway_target
+    target_query <- sprintf("SELECT target_year, targeted_intensity FROM company_pathway_target WHERE company_id = %d", selected_company_id_3())
+    target_data <- dbGetQuery(pool, target_query)
+    
+    # Check if there's data to plot
+    if (nrow(historical_data) == 0 && nrow(target_data) == 0) {
+      showNotification("No data found for the selected company", type = "error")
+      return()
+    }
+    
+    # Plot the data
+    plot(historical_data$year, historical_data$intensity, type = "l", 
+         ylim = c(0, max(historical_data$intensity, target_data$targeted_intensity)), 
+         xlim = c(2010, 2050),
+         xlab = "Year", ylab = "Intensity", main = "Emissions Intensity Pathway")
+    
+    # Add a line for the targeted intensities
+    lines(target_data$target_year, target_data$targeted_intensity, col = "red")
+    
+    # Connect the last point of historical data to the first point of target data
+    if (nrow(historical_data) > 0 && nrow(target_data) > 0) {
+      lines(x = c(tail(historical_data$year, n = 1), target_data$target_year[1]),
+            y = c(tail(historical_data$intensity, n = 1), target_data$targeted_intensity[1]),
+            col = "red")
+    }
+  })
+  
+  
+  
+  
+  
+  
+  }
+  
+  shinyApp(ui, server)
+  
+  
+  
 
-shinyApp(ui = ui, server = server)
